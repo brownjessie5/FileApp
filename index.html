@@ -1,136 +1,67 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>File App</title>
-    <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1"/>
-    <script type="text/javascript" charset="utf-8" src="phonegap.js"></script>
+    <title>Storage Example</title>
+
+    <script type="text/javascript" charset="utf-8" src="cordova-2.0.0.js"></script>
     <script type="text/javascript" charset="utf-8">
 
-    // Wait for device API libraries to load
+    // Wait for Cordova to load
     //
     document.addEventListener("deviceready", onDeviceReady, false);
 
-    // device APIs are available
+    // Populate the database 
+    //
+    function populateDB(tx) {
+        tx.executeSql('DROP TABLE IF EXISTS DEMO');
+        tx.executeSql('CREATE TABLE IF NOT EXISTS DEMO (id unique, data)');
+        tx.executeSql('INSERT INTO DEMO (id, data) VALUES (1, "First row")');
+        tx.executeSql('INSERT INTO DEMO (id, data) VALUES (2, "Second row")');
+    }
+
+    // Query the database
+    //
+    function queryDB(tx) {
+        tx.executeSql('SELECT * FROM DEMO', [], querySuccess, errorCB);
+    }
+
+    // Query the success callback
+    //
+    function querySuccess(tx, results) {
+  console.log("Returned rows = " + results.rows.length);
+  // this will be true since it was a select statement and so rowsAffected was 0
+  if (!results.rowsAffected) {
+    console.log('No rows affected!');
+    return false;
+  }
+  // for an insert statement, this property will return the ID of the last inserted row
+  console.log("Last inserted row ID = " + results.insertId);
+    }
+
+    // Transaction error callback
+    //
+    function errorCB(err) {
+        console.log("Error processing SQL: "+err.code);
+    }
+
+    // Transaction success callback
+    //
+    function successCB() {
+        var db = window.openDatabase("Database", "1.0", "Cordova Demo", 200000);
+        db.transaction(queryDB, errorCB);
+    }
+
+    // Cordova is ready
     //
     function onDeviceReady() {
-
+        var db = window.openDatabase("Database", "1.0", "Cordova Demo", 200000);
+        db.transaction(populateDB, errorCB, successCB);
     }
-
-
-//Regular Write Code
-
-    function writeFile() {
-	alert("Write File");
-        window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, gotFS, fail);
-
-    }
-
-    function gotFS(fileSystem) {
-	alert("GotFS");
-	var filename = document.getElementById("fileNameBox").value;
-        fileSystem.root.getFile(filename, {create: true, exclusive: false}, gotFileEntry, fail);
-    }
-
-    function gotFileEntry(fileEntry) {
-	alert("GotFileEntry");
-        fileEntry.createWriter(gotFileWriter, fail);
-    }
-
-    function gotFileWriter(writer) {
-	alert("Got FileWriter");
-
-	var text = document.getElementById("inputBox").value;
-	writer.onwriteend = function(evt) {
-		
-	    document.getElementById("output").innerHTML = "File Write Complete!";
-	};
-
-        writer.write(text);
-
-    }
-
-    function fail(error) {
-        alert("File Error:" + error.code);
-    }
-
-//Append Code
-
-    function appendFile() {
-        window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, gotFSAppend, fail);
-
-    }
-
-    function gotFSAppend(fileSystem) {
-	var filename = document.getElementById("fileNameBox").value;
-        fileSystem.root.getFile(filename, {create: true, exclusive: false}, gotFileEntryAppend, fail);
-    }
-
-    function gotFileEntryAppend(fileEntry) {
-        fileEntry.createWriter(gotFileWriterAppend, fail);
-    }
-
-    function gotFileWriterAppend(writer) {
-
-	var text = document.getElementById("inputBox").value;
-	writer.onwriteend = function(evt) {
-		
-	    document.getElementById("output").innerHTML = "File append Complete!";
-	};
-
-	writer.seek(writer.length);
-        writer.write(text);
-
-    }
-
-
-
-
-//Read and Show Code
-
-    function showFileText() {
-	window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, gotFSRead, fail);
-    }
-
-    function gotFSRead(fileSystem) {
-	var filename = document.getElementById("fileNameBox").value;
-        fileSystem.root.getFile(filename, null, gotFileEntryRead, fail);
-    }
-
-    function gotFileEntryRead(fileEntry) {
-        fileEntry.file(gotFileRead, fail);
-    }
-
-    function gotFileRead(file){
-        
-        readAsText(file);
-    }
-
-    function readAsText(file) {
-        var reader = new FileReader();
-        reader.onloadend = function(evt) {
-	    var value = evt.target.result;
-	    document.getElementById("output").innerHTML = value;
-        };
-        reader.readAsText(file);
-    }
-
-
-
 
     </script>
   </head>
   <body>
     <h1>Example</h1>
-    <p id="output">FileApp</p>
-
-	<form>
-		FileName: <input type="text" id="fileNameBox"><br>
-		Text to Write to File: <input type="text" id="inputBox">
-	</form>
-        <button onclick="writeFile();">Save text to file</button>
-        <button onclick="appendFile();">Append to file</button>
-        <button onclick="showFileText();">Read and Show File</button>
-	<br>
-
+    <p>Database</p>
   </body>
 </html>
