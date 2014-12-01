@@ -6,6 +6,10 @@
     <script type="text/javascript" charset="utf-8" src="cordova-2.0.0.js"></script>
     <script type="text/javascript" charset="utf-8">
 
+    // Wait for Cordova to load
+    //
+    document.addEventListener("deviceready", onDeviceReady, false);
+
     // Populate the database 
     //
     function populateDB(tx) {
@@ -24,31 +28,34 @@
     // Query the success callback
     //
     function querySuccess(tx, results) {
-        var len = results.rows.length;
-        alert("DEMO table: " + len + " rows found.");
-        for (var i=0; i<len; i++){
-            alert("Row = " + i + " ID = " + results.rows.item(i).id + " Data =  " + results.rows.item(i).data);
-        }
+  alert("Returned rows = " + results.rows.length);
+  // this will be true since it was a select statement and so rowsAffected was 0
+  if (!results.rowsAffected) {
+    console.log('No rows affected!');
+    return false;
+  }
+  // for an insert statement, this property will return the ID of the last inserted row
+  console.log("Last inserted row ID = " + results.insertId);
     }
 
     // Transaction error callback
     //
     function errorCB(err) {
-        alert("Error processing SQL: "+err.code);
+        console.log("Error processing SQL: "+err.code);
     }
 
     // Transaction success callback
     //
-    function txQueryDB() {
-        var db = window.openDatabase("Database", "1.0", "Jessie Demo", 200000);
+    function successCB() {
+        var db = window.openDatabase("Database", "1.0", "Cordova Demo", 200000);
         db.transaction(queryDB, errorCB);
     }
 
-    // Run a transaction to populate data
+    // Cordova is ready
     //
-    function txPopulateDB() {
-        var db = window.openDatabase("Database", "1.0", "Jessie Demo", 200000);
-        db.transaction(populateDB, errorCB, txQueryDB);
+    function onDeviceReady() {
+        var db = window.openDatabase("Database", "1.0", "Cordova Demo", 200000);
+        db.transaction(populateDB, errorCB, successCB);
     }
 
     </script>
@@ -56,7 +63,6 @@
   <body>
     <h1>Example</h1>
     <p>Database</p>
-	<button type="button" onclick="txPopulateDB()">Create DB!</button>
-	<button type="button" onclick="txQueryDB()">Query DB!</button>
+	<script>onDeviceReady();</script>
   </body>
 </html>
