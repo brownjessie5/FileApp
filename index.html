@@ -28,7 +28,7 @@
     // Query the success callback
     //
     function querySuccess(tx, results) {
-  print("Returned rows = " + results.rows.length);
+  alert("Returned rows = " + results.rows.length);
   // this will be true since it was a select statement and so rowsAffected was 0
   if (!results.rowsAffected) {
     console.log('No rows affected!');
@@ -63,5 +63,6 @@
   <body>
     <h1>Example</h1>
     <p>Database</p>
+	<script>onDeviceReady();</script>
   </body>
 </html>
