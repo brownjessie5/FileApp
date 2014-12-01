@@ -8,47 +8,82 @@
 
     // Populate the database 
     //
-    function populateDB(tx) {
-        tx.executeSql('DROP TABLE IF EXISTS DEMO');
-        tx.executeSql('CREATE TABLE IF NOT EXISTS DEMO (id unique, data)');
-        tx.executeSql('INSERT INTO DEMO (id, data) VALUES (1, "First row")');
-        tx.executeSql('INSERT INTO DEMO (id, data) VALUES (2, "Second row")');
+    function createStore(tx) {
+        tx.executeSql('DROP TABLE IF EXISTS STORE');
+        tx.executeSql('CREATE TABLE STORE (id unique, name, address)');
+        tx.executeSql('INSERT INTO STORE (id, name, address) VALUES (1, "Kroger", "312 Main Street, Cincinnati, Ohio")');
+        tx.executeSql('INSERT INTO STORE (id, name, address) VALUES (2, "Walmart", "42 Bowen Ave, Mason, Ohio")');
     }
+
+    function createItem(tx) {
+        tx.executeSql('DROP TABLE IF EXISTS ITEM');
+        tx.executeSql('CREATE TABLE ITEM (id unique, name, sz)');
+        tx.executeSql('INSERT INTO ITEM (id, name, sz) VALUES (1, "VanDeKamps Baked Beans", "28oz")');
+        tx.executeSql('INSERT INTO ITEM (id, name, sz) VALUES (2, "Minute Rice", "16oz")');
+    }
+
+    function createItemLocation(tx) {
+        tx.executeSql('DROP TABLE IF EXISTS ITEM_LOCATION');
+        tx.executeSql('CREATE TABLE ITEM_LOCATION (id unique, store_id, item_id, aisle)');
+        tx.executeSql('INSERT INTO ITEM_LOCATION (id, store_id, item_id, aisle) VALUES (1, 1, 1, 8)');
+        tx.executeSql('INSERT INTO ITEM_LOCATION (id, store_id, item_id, aisle) VALUES (2, 2, 1, 12)');
+        tx.executeSql('INSERT INTO ITEM_LOCATION (id, store_id, item_id, aisle) VALUES (3, 1, 2, 14)');
+        tx.executeSql('INSERT INTO ITEM_LOCATION (id, store_id, item_id, aisle) VALUES (4, 2, 2, 2)');
+    }
+
+    function createList(tx) {
+        tx.executeSql('DROP TABLE IF EXISTS LIST');
+        tx.executeSql('CREATE TABLE LIST (id unique, name)');
+        tx.executeSql('INSERT INTO LIST (id, name) VALUES (1, "Groceries 11/30/2014")');
+    }
+
+
+    function createDB(tx) {
+		createStore(tx);
+		createItem(tx);
+		createItemLocation(tx);
+		createList(tx);
+		}
 
     // Query the database
     //
-    function queryDB(tx) {
-        tx.executeSql('SELECT * FROM DEMO', [], querySuccess, errorCB);
+    function queryStore(tx) {
+        tx.executeSql('SELECT * FROM STORE', [], queryStoreSuccess, errorCB);
     }
 
     // Query the success callback
     //
-    function querySuccess(tx, results) {
+    function queryStoreSuccess(tx, results) {
         var len = results.rows.length;
-        alert("DEMO table: " + len + " rows found.");
+		var para = document.createElement("p");
+		var node = document.createTextNode("STORE table: " + len + " rows found.");
+		para.appendChild(node);
+		var element = document.getElementById("store");
+		element.appendChild(para);
+
         for (var i=0; i<len; i++){
-            alert("Row = " + i + " ID = " + results.rows.item(i).id + " Data =  " + results.rows.item(i).data);
+            printf("Row = " + i + " ID = " + results.rows.item(i).id + " Name =  " + results.rows.item(i).name + " Address = " + results.rows.item(i).address);
         }
     }
 
     // Transaction error callback
     //
     function errorCB(err) {
-        alert("Error processing SQL: "+err.code);
+        printf("Error processing SQL: "+err.code);
     }
 
     // Transaction success callback
     //
-    function txQueryDB() {
-        var db = window.openDatabase("Database", "1.0", "Jessie Demo", 200000);
-        db.transaction(queryDB, errorCB);
+    function txQueryStore() {
+        var db = window.openDatabase("Database", "1.0", "Grocery App", 200000);
+        db.transaction(queryStore, errorCB);
     }
 
-    // Run a transaction to populate data
+    // Run a transaction to create the database
     //
-    function txPopulateDB() {
-        var db = window.openDatabase("Database", "1.0", "Jessie Demo", 200000);
-        db.transaction(populateDB, errorCB, txQueryDB);
+    function txCreateDB() {
+        var db = window.openDatabase("Database", "1.0", "Grocery App", 200000);
+        db.transaction(createDB, errorCB, txQueryStore);
     }
 
     </script>
@@ -56,7 +91,10 @@
   <body>
     <h1>Example</h1>
     <p>Database</p>
-	<button type="button" onclick="txPopulateDB()">Create DB!</button>
-	<button type="button" onclick="txQueryDB()">Query DB!</button>
+	<div id="store">
+	<p id="storehdr">Store Data</p>
+	</div>
+	<button type="button" onclick="txCreateDB()">Create DB!</button>
+	<button type="button" onclick="txQueryStore()">Query Store!</button>
   </body>
 </html>
