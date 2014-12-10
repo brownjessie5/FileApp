@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Storage Example</title>
+
+    <script type="text/javascript" charset="utf-8" src="cordova-2.0.0.js"></script>
+    <script type="text/javascript" charset="utf-8">
+
+    // Populate the database 
+    //
+    function populateDB(tx) {
+        tx.executeSql('DROP TABLE IF EXISTS DEMO');
+        tx.executeSql('CREATE TABLE IF NOT EXISTS DEMO (id unique, data)');
+        tx.executeSql('INSERT INTO DEMO (id, data) VALUES (1, "First row")');
+        tx.executeSql('INSERT INTO DEMO (id, data) VALUES (2, "Second row")');
+    }
+
+    // Query the database
+    //
+    function queryDB(tx) {
+        tx.executeSql('SELECT * FROM DEMO', [], querySuccess, errorCB);
+    }
+
+    // Query the success callback
+    //
+    function querySuccess(tx, results) {
+        var len = results.rows.length;
+        alert("DEMO table: " + len + " rows found.");
+        for (var i=0; i<len; i++){
+            alert("Row = " + i + " ID = " + results.rows.item(i).id + " Data =  " + results.rows.item(i).data);
+        }
+    }
+
+    // Transaction error callback
+    //
+    function errorCB(err) {
+        alert("Error processing SQL: "+err.code);
+    }
+
+    // Transaction success callback
+    //
+    function txQueryDB() {
+        var db = window.openDatabase("Database", "1.0", "Jessie Demo", 200000);
+        db.transaction(queryDB, errorCB);
+    }
+
+    // Run a transaction to populate data
+    //
+    function txPopulateDB() {
+        var db = window.openDatabase("Database", "1.0", "Jessie Demo", 200000);
+        db.transaction(populateDB, errorCB, txQueryDB);
+    }
+
+    </script>
+  </head>
+  <body>
+    <h1>Example</h1>
+    <p>Database</p>
+	<button type="button" onclick="txPopulateDB()">Create DB!</button>
+	<button type="button" onclick="txQueryDB()">Query DB!</button>
+  </body>
+</html>
